@@ -1,0 +1,526 @@
+---
+title: "Resultant Forces"
+author: "James Adams"
+date: "17/05/2020"
+output: 
+  html_document: 
+    keep_md: yes
+    self_contained: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	fig.width = 8,
+	out.width = "80%",
+	fig.align = "center",
+	fig.path = "plots/",
+	dpi = 300
+)
+
+library(tidyverse)
+library(here)
+library(glue)
+library(gganimate)
+library(ggthemr)
+library(beepr)
+
+ggthemr('solarized', layout = 'minimal', type = 'outer')
+
+theme_update(panel.background = element_rect(fill = "white"),
+             text = element_text(colour = "black"),
+             strip.text = element_text(colour = "black"))
+
+# Data
+# You can get the force curves data loaded here from https://jmablog.github.com/parkour-vaults-research
+
+load(here("forceCurves.Rdata"))
+
+# for reference - when looping through the raw data on import, this is how
+# resultant magnitude (rMag) and angle (rAng) were calculated from vertical (Fz)
+# and horizontal (Fy) magnitudes
+# rMag = sqrt(Fy^2 + Fz^2)
+# rAng = (atan2(Fz, Fy) * 180 / pi)
+# I checked and halving rMag is the same as halving Fy and Fz then performing the
+# calculation, e.g. sqrt(5^2 + 2^2) == sqrt(2.5^2 + 1^2)
+
+# find peak resultant force magnitude & angle at that time
+findPeakResultant <- function(data, axis, full = "no") {
+  if (full == "yes"){
+    tmp <- data %>% filter(get(axis) == max(get(axis)))
+    tmp[1, ]
+  }
+  else {
+    tmp <- data %>% filter(get(axis) == max(get(axis)))
+    tmp[1, 4:5]
+  }
+}
+
+# resultant forces
+resultantForces <- forceCurves %>% 
+  mutate(resultant = map(forceCurves, ~findPeakResultant(.x, "rMag", full = "yes"))) %>% 
+  select(-forceCurves) %>% 
+  unnest(resultant) %>%
+  mutate(resultantForce = rMag / weight,
+         resultantAngle = rAng,
+         vertical = Fz / weight,
+         horizontal = Fy / weight) %>%
+  mutate(leg = fct_recode(leg, Precision = "Double", Running = "Single")) %>%
+  mutate(resultantForce = case_when(leg == "Precision" ~ resultantForce / 2,
+                                       leg == "Running" ~ resultantForce),
+         vertical = case_when(leg == "Precision" ~ vertical / 2,
+                                 leg == "Running" ~ vertical),
+         horizontal = case_when(leg == "Precision" ~ horizontal / 2,
+                                   leg == "Running" ~ horizontal)) %>%
+  select(partID, movement, leg, rep, resultantForce, resultantAngle, vertical, horizontal)
+
+# Median peak from 3 reps
+
+medianSlice <- function(slice, keys){
+  
+  slice %>% 
+    arrange(resultantForce) %>% 
+    slice(2)
+  
+}
+
+repMedians <- resultantForces %>%
+  group_by(partID, movement, leg) %>%
+  group_modify(medianSlice) %>%
+  ungroup()
+
+# Mean peak from 3 reps
+
+repMeans <- resultantForces %>%
+  group_by(partID, movement, leg) %>%
+  summarise(resultantForce = mean(resultantForce),
+            resultantAngle = mean(resultantAngle),
+            vertical = mean(vertical),
+            horizontal = mean(horizontal))
+
+```
+
+I had a lot of ideas for what I wanted to include in my [dissertation](https://jmablog.com/pkvs). Starting out, writing my proposal, I wanted to look at *everything* I could think of in relation to vaulting in parkour and the landing forces that result. I wanted to include [rate of force development](https://www.scienceforsport.com/rate-of-force-development-rfd-2/), projectile motion of bodies in the air, motion tracking joint angles... Every biomechanical variable you could think of, I wanted it in there. I was dependant variable mad!
+
+Unfortunately, the more variables you start throwing in, the more diluted your study becomes. It's hard to tell a good story about so many outcomes; the water gets muddied. The best scientific studies I've read have picked one variable and really *gone in* on what it is, what it means, and why you should care about it. There's also a *lot more* statistical work involved with more variables, and frankly, for undergrad level it was overkill. So I drilled down, and went with what I considered the basics.
+
+As a side effect, I ended up with a lot of research and ideas on the cutting room floor. As the final study is done and dusted, it seemed a shame to throw the data out with it. I get that's how strict science is supposed to work; hypothesis, gather data, test hypothesis, *done*. But I'm not writing a second paper with it; I just want to poke and prod it a little to get some ideas.
+
+Plus I like making graphs.
+
+One discarded idea that really stuck with me was the investigation into **resultant forces** from parkour vaults. So I decided to dig into it further. I wanted to share some of these observations, but that's all they are; I haven't done any statistical testing here. But, resultant forces present a really interesting way to visualise the forces acting upon a body when landing from a movement, particular one that doesn't just involve jumping straight up and down, but involves a horizontal travelling component. 
+
+Let's jump in, but first...
+
+## What is a resultant force?
+
+Most people are at least vaguely familiar with [Newton's Third Law of Motion](https://en.wikipedia.org/wiki/Newton%27s_laws_of_motion#Newton's_third_law) - often summarised as 'for every action there is an equal and opposite reaction'. When it comes to landing, this means that the floor 'pushes' back on you exactly as hard as you push upon it. It has to; if it couldn't match your force in coming down, you'd smash straight through the floor. This force is called the **ground reaction force**, which makes sense, as it's the *force* the *ground* is *reacting* to you with. Sometimes science comes up with really hard, confusing names for things, and sometimes it's just like 'yeah, just call it exactly what it is'. I'll be using **GRF** for ground reaction force from here on.
+
+Anyway, if jumping straight up and down, it looks like this:
+
+![](vGRF.png)
+
+This is generally known as **vertical** GRF.
+
+The strength (or **magnitude**) of the forces at play depends upon a few things, such as your bodyweight, the speed you are travelling, and how much you are able to actively mitigate the impact you make. The final one is pretty much what I studied in the dissertation and one of the things people are most interested in with parkour; the ability to absorb and reduce some of these landing forces using good technique and strong leg muscles. Some people can land really softly, and some people can come down like a sack of bricks, despite weighing the same and dropping the same distance. But that's besides the point here.
+
+As well as jumping straight up and down, sometimes you jump forward and backward, or side to side. These movements have their own GRFs, corresponding to the direction you are moving. Again this makes sense; the ground has to stop you from continuing to move forward if you do a broad jump, otherwise you'd land and continue to slide forward forever until you met another obstacle. While hilarious, this would be impractical. Chiefly these forces are friction based, but that doesn't really matter here.
+
+While side to side (or medial-lateral) GRF is useful for things like studying balance, I just looked at forward-backward (or anterior-posterior, or just **horizontal**) GRF alongside vertical. Here's a diagram of horiztonal GRF, in particular when it is acting as a braking force to slow you down:
+
+![](hGRF.png)
+
+One interesting thing to note here is that horizontal GRF also has two sub-divisions. Braking GRF is when the ground is stopping you from carrying on; if you're coming to a dead stop after a movement, this is all that will affect you. But if you're running, or continuing to move forward in some way after landing, you also use propulsive GRF to push off the floor and accelerate. Suddenly, the ground isn't pushing back on you to slow you down, but pushing you forwards!
+
+![](running.png)
+
+This comes up when it comes to landing from a vault with a running landing; we'll get there a little bit later.
+
+Okay. So, we have vertical and horizontal GRF. So what's resultant force? Well, think about if you're coming in to land from a broad jump or a vault, you're not just coming straight down, or sliding along the ground perfectly horizontally. You are moving in a *combination* of up-and-down, and forward-and-backward directions. The resultant force you are exerting is the *combination* of those two forces acting upon you. For our uses, the resultant force is therefore the **combination of the GRFs acting upon you when landing**.
+
+To illustrate, if you're landing like this:
+
+![](landing.png)
+
+Do you think the GRFs push back upon you in separate vertical and horizontal stages, like this?
+
+![](notRF.png)
+
+No, they match not only the *magnitude* of the combination of the forces, but also the *angle*:
+
+![](rf.png)
+
+This presents a fairly intuitive way to visualise the forces acting upon you when landing in any movement that isn't just straight up-and-down. So, much like when dealing with solely vertical or horizontal GRF, we can use the resultant GRF to determine the effect that a landing will have on you!
+
+## Why look at resultant forces?
+
+Generally, the larger the magnitude of GRF you experience, the more stress is passed on to the body, and the greater your chance of an injury from that movement. It's not always cut-and-dry, there are a lot of other factors that can go into it, but basically we know that larger GRF on landing is more demanding of the body to deal with, and more *likely* to hurt you in some fashion than a smaller GRF.
+
+Since the exact amount of GRF you'll experience varies a lot throughout the stages of a landing, generally we look at the *peak* amount, or largest magnitude value we can identify during the landing. In investigating these forces, I found that vertical GRF plays a much more influential role in the magnitude of peak resultant GRF than horizontal does; that is, peak vertical GRF is usually much larger than the peak horizontal GRF and so peak resultant GRF occurs mostly around the same time as peak vertical.
+
+With resultant forces, we can also look at the angle that the GRF is applying itself to you, and mostly here I've looked at the *angle that peak resultant GRF occurs*. 0° is flat, and 90° is straight up, so any resultant angle lower than 90° means that the peak occurred during braking, and angles beyond 90° mean peak occurred during propulsion.
+
+Here, I've looked at angle mostly with interested observations; I haven't gone in depth on the subject (yet), but since [shearing forces](https://en.wikipedia.org/wiki/Shear_force) are a thing, it's easy to imagine that the angle a GRF acts upon your tissues could also play a role in injury.
+
+## Calculating and plotting resultant forces
+
+I won't go into a lot of detail here; you can find a really good breakdown on how to calculate resultant forces in [this article](https://www.phyley.com/find-resultant-force). 
+
+The nice thing about working with purely vertical and horizontal GRFs is that we know what the angles for each are always going to be. Vertical GRF will be 100% of the force at 90° and 0% at 0°, and horizontal will be vice versa. We don't need to further break down the *x* and *y* components of each force. This means we can simplify our calculations to work out resultant from vertical and horizontal GRFs to just the following (in [R](https://www.r-project.org/)):
+
+```{r eval=FALSE, echo=TRUE}
+resultant_magnitude = sqrt(Horizontal_GRF^2 + Vertical_GRF^2)
+resultant_angle = (atan2(Vertical_GRF, Horizontal_GRF) * 180 / pi)
+```
+
+Applying this to all the GRFs in the [force platform data I collected](https://github.com/jmablog/parkour-vault-research), it's then quite easy to just filter for the peak value with `max(resultant_magnitude)`, also grabbing the angle and vertical / horizontal GRFs at the time when that peak occurs. When it comes to plotting, we can then just use the horizontal GRF as our *x* co-ordinate, and the vertical GRF as our *y* component, provided we make sure the plotting grid has a 1-1 ratio for *x* and *y* co-ordinates. You can do this in R and ggplot2 with `coord_fixed()`.
+
+Et voila! We can now view our resultant force data in a variety of ways.
+
+## Finally, the point
+
+I wanted to get a broad overview of the resultant forces in parkour vaults first. There were 10 participants in the study, and each performed 3 repetitions of every movement with each landing style.
+
+**Note:** if you haven't read the [original study](https://jmablog.com/pkvs/) for this data, the movements performed were a drop landing, a step vault, a kong vault, and a dash vault. The landing styles were a precision landing, with two feet coming to a stop, and a running landing, with one foot and continuining into a run. Force readings were normalised to bodyweight (BW), to allow comparisons between people that weigh different amounts. Generally, 1 bodyweight (1 BW) is the GRF you experience standing upright and still on the ground, as a result of gravity. The GRF figures for precisions landings were also halved to give the GRFs passing through a single limb, to match with the running landing.
+
+Taking the mean of all 3 reps, and then the mean for all 10 participants, for all movement/landing style combinations gave the following:
+
+```{r avg_for_all}
+
+repMeans %>%
+  group_by(movement, leg) %>% 
+  summarise(resultantPeak = mean(resultantForce),
+            resultantAngle = mean(resultantAngle),
+            vertical = mean(vertical),
+            horizontal = mean(horizontal)) %>% 
+  ungroup %>%
+  ggplot(aes(horizontal, vertical)) +
+  geom_segment(aes(xend = 0, yend = 0), position = "jitter",
+               arrow = arrow(ends = "first", length = unit(0.03, "npc"), 
+                             type = "closed"), color = swatch()[3]) +
+  geom_text(aes(label = paste(round(resultantPeak, 2), " x BW", "\n ",
+                              round(resultantAngle, 1), "°", sep = " ")), 
+            size = 3, hjust = -.2) +
+  coord_fixed() +
+  expand_limits(x = c(-1, 4), y = c(0, 5)) +
+  facet_grid(leg~movement) + 
+  labs(x = "Horizontal Force (BW)",
+       y = "Vertical Force (BW)",
+       title = "Average resultant forces for all movements and landing styles",
+       subtitle = "Annotations denote average peak resultant force and angle") +
+  theme(#axis.text.x = element_text(angle = 270, hjust = 0, vjust = .5),
+        panel.border = element_rect(colour = "black", fill = "NA"),
+        axis.line = element_line(colour = "NA"))
+
+```
+
+You can view this plot (and all that follow) as if the participant was coming in to land from the top right of each square; the arrow indicates the direction and magnitude of the resultant GRF pushing back upon the participant as they hit the floor. For the Horizontal / *x* component of the plot, positive numbers indicate braking, while negative are propulsive.
+
+You can see a couple things straight away from this plot. Resultant GRF increases with a running landing compared to a precision landing. This agrees with my findings in the original study about vertical GRF, and given the dominance of vertical GRF in calculating the peak resultant force, makes sense.
+
+Resultant angles were all below 90° for precision landings, and all above 90° for running landings. This means peak resultant GRF occurred during braking for precisions, and during propulsion for running landings. This also makes sense; you're coming to a stop with a precision but continuing forwards with a run. Still, it's good to note that the greatest GRF occurred because the participant was accelerating, and actively pushing on the ground, rather than during the initial period of landing. More on this later.
+
+Alright, what if we try looking at individual participants? Do the resultant forces depend a lot on the person, or are they consistent regardless of who performs them?
+
+```{r avg_plus_all_reps_all_participants}
+
+resultantForces %>%
+    full_join(repMeans %>% rename(avg_res_force = resultantForce,
+                                  avg_res_angle = resultantAngle,
+                                  avg_vertical = vertical,
+                                  avg_horizontal = horizontal)) %>%
+    ggplot(aes(avg_horizontal, avg_vertical)) +
+    # geom_segment(aes(x = horizontal, y = vertical, xend = 0, yend = 0), position = "jitter",
+    #              arrow = arrow(ends = "first", length = unit(0.05, "npc"), 
+    #                            type = "closed"), alpha = .2, colour = swatch()[2]) +
+    geom_segment(aes(xend = 0, yend = 0),
+                 arrow = arrow(ends = "first", length = unit(0.05, "npc"), 
+                               type = "closed"), alpha = .2, colour = swatch()[3]) +
+    # geom_text(aes(label = paste(round(avg_res_force, 2), " x B/W", "\n ",
+    #                             round(avg_res_angle, 1), "°", sep = " ")), 
+    #           size = 3, hjust = -.3) +
+    coord_fixed() +
+    expand_limits(x = c(-2, 5), y = c(0, 5)) +
+    facet_grid(leg~movement) + 
+    labs(x = "Horizontal Force (BW)",
+         y = "Vertical Force (BW)",
+         title = "Resultant forces for all participants",
+         subtitle = "Red arrows denote average values per participant")
+
+```
+
+Okay! So, it looks to me like precision landings produce a more consistent resultant force overall, with running landings have a lot more variation in resultant angle. There's a pretty weird single arrow sticking off in the drop / running group, but otherwise the observations from the group averages stand; there's an increase in magnitude when switching to a running landing, and running landings tends to be a bit more anteriorly (forward) shifted in their peak resultant force angles.
+
+Can we get a broad overview of how this breaks down per partcicipant for each movement and landing style?
+
+```{r all_participants_all_movements_precision_landing_style}
+
+resultantForces %>%
+    full_join(repMeans %>% rename(avg_res_force = resultantForce,
+                                  avg_res_angle = resultantAngle,
+                                  avg_vertical = vertical,
+                                  avg_horizontal = horizontal)) %>%
+    filter(leg == "Precision") %>%
+    mutate(partID = str_remove_all(partID, "[ABC]")) %>%
+    ggplot(aes(avg_horizontal, avg_vertical)) +
+    geom_segment(aes(x = horizontal, y = vertical, xend = 0, yend = 0), position = "jitter",
+                 arrow = arrow(ends = "first", length = unit(0.05, "npc"), 
+                               type = "closed"), alpha = .3, colour = swatch()[2]) +
+    geom_segment(aes(xend = 0, yend = 0),
+                 arrow = arrow(ends = "first", length = unit(0.05, "npc"), 
+                               type = "closed"), colour = swatch()[3]) +
+    # geom_text(aes(label = paste(round(avg_res_force, 2), " x B/W", "\n ",
+    #                             round(avg_res_angle, 1), "°", sep = " ")), 
+    #           size = 3, hjust = -.3) +
+    coord_fixed() +
+    expand_limits(x = c(-1, 2), y = c(0, 3)) +
+    facet_grid(movement ~ partID) + 
+    labs(x = "Horizontal Force (BW)",
+         y = "Vertical Force (BW)",
+         title = "Resultant forces for all precision landings",
+         subtitle = "Red arrows denote average value, blue denote individual rep values")
+
+```
+
+Yes! Although a bit harder to see as it's zoomed out quite far, this plot shows each participant as a column, and each movement as a row. The red arrows show the average values we've been looking at so far, but the fainter blue arrows show the actual results from each individual rep that the participant performed. By seeing how much blue shows up, and how far apart the blue arrows are from each other, we can get a sense of how much the repetitions varied from each other for that participant and movement.
+
+Just scanning your eye over it, you can get a sense for the general direction the arrows are taking for all precision landings - all posterior, or less than 90° from horizontal. There isn't a lot of blue showing, indicating mostly consistent results per participant, although partly that could be because of the zoomed out scale. Still, the movement that seems to produce the most blue arrows is the kong; let's make a note of that.
+
+Here's the equivalent for running landings:
+
+```{r all_participants_all_movements_running_landing_style}
+
+resultantForces %>%
+    full_join(repMeans %>% rename(avg_res_force = resultantForce,
+                                  avg_res_angle = resultantAngle,
+                                  avg_vertical = vertical,
+                                  avg_horizontal = horizontal)) %>%
+    filter(leg == "Running") %>%
+    mutate(partID = str_remove_all(partID, "[ABC]")) %>%
+    ggplot(aes(avg_horizontal, avg_vertical)) +
+    geom_segment(aes(x = horizontal, y = vertical, xend = 0, yend = 0), position = "jitter",
+                 arrow = arrow(ends = "first", length = unit(0.05, "npc"), 
+                               type = "closed"), alpha = .3, colour = swatch()[2]) +
+    geom_segment(aes(xend = 0, yend = 0),
+                 arrow = arrow(ends = "first", length = unit(0.05, "npc"), 
+                               type = "closed"), colour = swatch()[3]) +
+    # geom_text(aes(label = paste(round(avg_res_force, 2), " x B/W", "\n ",
+    #                             round(avg_res_angle, 1), "°", sep = " ")), 
+    #           size = 3, hjust = -.3) +
+    coord_fixed() +
+    expand_limits(x = c(-2, 5), y = c(0, 3)) +
+    facet_grid(movement ~ partID) + 
+    labs(x = "Horizontal Force (BW)",
+         y = "Vertical Force (BW)",
+         title = "Resultant forces for all running landings",
+         subtitle = "Red arrows denote average value, blue denote individual rep values")
+
+```
+
+Again, just scanning over the plot, you can get a sense of the general direction of the arrows; a lot more straight up or anteriorly orientated, at or beyond 90° from horizontal. This matches what we saw in the averages plot earlier. There's also more blue showing up in the kong again...
+
+We could start drilling down into each movement or landing style individually, but I don't want this post to become a novel. We've seen the most blue showing up for the kong, in both precision and running landings. Let's take a closer look at that.
+
+Here, I've plotted the average resultant force in red for each participant (1-10) performing a kong with a running landing, and also included in blue the actual values recorded for each of the 3 reps they performed, similar to the previous plots. I've also added back in the peak resultant force magnitude and angle in text annotation:
+
+```{r}
+
+combinations <- crossing(move = unique(resultantForces$movement), leg = unique(resultantForces$leg))
+
+resForcesbyMovementLeg <- function (move, ls) {
+
+  resultantForces %>%
+    full_join(repMeans %>% rename(avg_res_force = resultantForce,
+                                  avg_res_angle = resultantAngle,
+                                  avg_vertical = vertical,
+                                  avg_horizontal = horizontal)) %>%
+    filter(movement == move,
+           leg == ls) %>%
+    mutate(partID = str_remove_all(partID, "[ABC]")) %>%
+    ggplot(aes(avg_horizontal, avg_vertical)) +
+    geom_segment(aes(x = horizontal, y = vertical, xend = 0, yend = 0), position = "jitter",
+                 arrow = arrow(ends = "first", length = unit(0.05, "npc"), 
+                               type = "closed"), alpha = .3, colour = swatch()[2]) +
+    geom_segment(aes(xend = 0, yend = 0),
+                 arrow = arrow(ends = "first", length = unit(0.05, "npc"), 
+                               type = "closed"), colour = swatch()[3]) +
+    geom_text(aes(label = paste(round(avg_res_force, 2), " x B/W", "\n ",
+                                round(avg_res_angle, 1), "°", sep = " ")), 
+              size = 3, hjust = -.3) +
+    coord_fixed() +
+    expand_limits(x = c(-1, 5), y = c(0, 6)) +
+    facet_wrap(~partID, nrow = 2, ncol = 5) + 
+    labs(x = "Horizontal Force (BW)",
+         y = "Vertical Force (BW)",
+         title = "Resultant forces for all participants",
+         subtitle = glue("From a {tolower(move)} with a {tolower(ls)} style landing"))
+}
+
+res_forces_per_movement_leg <- pmap(combinations, ~resForcesbyMovementLeg(.x, .y))
+
+res_forces_per_movement_leg[[8]]
+
+```
+
+I'd say a good 7 out of the 10 participants were actually quite consistent in their execution here. Shout out to number 9 in particular; you can barely even see the blue arrows for each rep, they're so tightly grouped. Nice.
+
+Notably the participants with the more variable results also produced a more posteriorly (backward) title arrow; that is, close to or less than 90°. They still had individual reps beyond 90°, but the average was pulled backwards. 
+
+How does this compare to a kong with a precision landing?
+
+```{r}
+
+res_forces_per_movement_leg[[7]]
+
+```
+
+Everyone is a lot more consistent here; and *all* the angles are at or below 90°.
+
+This is all very interesting, but it's starting to lead to the question - if the peak magnitude for a resultant force with a running landing happens during propulsion, what is the actual peak magnitude for the *landing* part of a running landing?
+
+For that, we need a way to separate out the landing part of the movement from the, well, running part. That' difficult to do with peak values; we could try and delineate parts of the movement based on time but, well, it gets tricky standardising individual movements to the same timeline (some people land quickly, some people take longer). Luckily we're not after hard statistical number-science here; there's a nice visual way to look at these things.
+
+## Force profiles
+
+With the force platform data I collected, it's possible to plot the actual millisecond-by-millisecond changes in horizontal and vertical force readings as *x* and *y* components, and then connect them up to form a path of resultant forces throughout a movement. The plots get a little messy, as you'll see, but it summarises the directions and magnitudes of forces acting on the body (in the vertical and horizontal axes, as least) quite nicely. Here is an example plot for one participant, with one rep. We've been looking at kongs with running landings, so let's also stick with that:
+
+```{r mapped_force_profiles}
+
+select_part <- "A01"
+select_movement <- "Kong"
+select_leg <- "Single"
+select_rep <-  1
+
+data <- forceCurves %>% 
+  filter(partID == select_part,
+         movement == select_movement,
+         leg == select_leg)
+
+dataFull <- forceCurves %>% unnest(forceCurves) %>%
+  mutate(ms = round(time, 1),
+         Fz = Fz / weight,
+         Fy = Fy / weight) %>%
+  mutate(leg = fct_recode(leg, Precision = "Double", Running = "Single")) %>%
+  mutate(Fz = case_when(leg == "Precision" ~ Fz / 2,
+                        leg == "Running" ~ Fz),
+         Fy = case_when(leg == "Precision" ~ Fy / 2,
+                        leg == "Running" ~ Fy))
+
+data <- data %>% unnest(forceCurves) %>% 
+  mutate(ms = round(time, 1),
+         Fz = Fz / weight,
+         Fy = Fy / weight) %>% 
+  filter(ms >= 2 & ms <= 4) %>%
+  mutate(leg = fct_recode(leg, Precision = "Double", Running = "Single")) %>%
+  mutate(Fz = case_when(leg == "Precision" ~ Fz / 2,
+                        leg == "Running" ~ Fz),
+         Fy = case_when(leg == "Precision" ~ Fy / 2,
+                        leg == "Running" ~ Fy))
+
+# One Participant, One Movement, One Landing Style
+
+data %>%
+  filter(rep == 2) %>%
+  mutate(partID = str_remove_all(partID, "[ABC]")) %>%
+  ggplot(aes(Fy, Fz)) +
+  geom_path(colour = swatch()[3], size = .8) +
+  # geom_point(size = .3, alpha = .3) +
+  geom_segment(aes(xend=c(tail(Fy, n=-1), NA),
+                   yend=c(tail(Fz, n=-1), NA)),
+               arrow = arrow(ends = "last",
+                             length = unit(0.03, "npc"),
+                             type = "closed"),
+               alpha = .5,
+               colour = swatch()[2]) +
+  geom_hline(yintercept = 1, colour = "#dc322f", 
+             linetype = "dotted", alpha = .5, size = .5) +
+  geom_vline(xintercept = 0, colour = "#dc322f", 
+             linetype = "dotted", alpha = .5, size = .5) +
+  coord_fixed(ratio = 1) +
+  expand_limits(x = c(-1, 1)) +
+  scale_color_gradient2(low = swatch()[2],
+                        mid = "white",
+                        high = swatch()[4]) +
+  labs(title = 'Kong force profile',
+       subtitle = 'with a running landing',
+       x = 'Horizontal Force(BW)',
+       y = 'Vertical Force (BW)')
+
+```
+
+It gets a little muddy due to the sheer number of data points, but I've tried marking little blue arrows to indicate the direction the forces are moving in throughout the movement. Each arrow occurs at 1 millisecond, so the more spread out the arrows are, the quicker the force is changing.
+
+You can see that the force first spikes hard to the right (or backwards) at the start, when the foot first makes contact with the floor. It then loops back round and down, before moving to the left (or forwards) and back up as the participant weight shifts over the midfoot and the propulsion phase of the running landing begins. This is where peak resultant force occurs - at the highest point on the plot, which you can see is to the left of 0 on the *x* axis and therefore in the propulsive phase.
+
+This lets us try and answer our question from before; in this one example, the peak *landing* resultant force (that first spike to the right) appears to be less than the *absolute* peak resultant force (that second spike on the left), albeit not by a lot. This is just one rep by one participant though; what if we widen things back out to the whole study?
+
+```{r}
+# One Movement, Both Landing Styles, One Rep, All Participants
+
+dataFull %>%
+  filter(movement == "Kong",
+         rep == 2) %>%
+  mutate(partID = str_remove_all(partID, "[ABC]")) %>%
+  ggplot(aes(Fy, Fz)) +
+  geom_path(colour = "#268bd2") +
+  # geom_point(size = .3) +
+  geom_segment(aes(xend=c(tail(Fy, n=-1), NA),
+                   yend=c(tail(Fz, n=-1), NA)),
+               arrow = arrow(ends = "last",
+                             length = unit(0.03, "npc"),
+                             type = "closed"),
+               alpha = .5,
+               colour = swatch()[2]) +
+  geom_hline(yintercept = 1, colour = "#dc322f", 
+             linetype = "dotted", alpha = .5, size = .5) +
+  geom_vline(xintercept = 0, colour = "#dc322f", 
+             linetype = "dotted", alpha = .5, size = .5) +
+  coord_fixed(ratio = 1) +
+  scale_x_continuous(breaks = c(0), labels = c(0)) +
+  facet_grid(leg~partID) +
+  labs(title = 'Force profiles for kong landings',
+       subtitle = "For a single rep",
+       x = "Horizontal Force (BW)",
+       y = "Vertical Force (BW)")
+
+```
+
+Again it's little tricky to show fine detail in these plots due to the density of data and zoomed out perspective, but scanning your eye over the results here gives a sense of what we'd started to suspect. For precision landings, there is nearly always that general tilt to the right that indicates most of the GRFs are occurring with a posterior orientation. And, tellingly, that sharp *spike* to the right on first landing appears to also be where the peak force magnitude occurs, with most of the rest of the movement not surpassing it, or at least not by much.
+
+However, in running landings, that landing spike often *isn't* the largest force seen, sometimes only by a bit, but sometimes by quite a large margin. Look at the running landing for participant 6; the landing spike is not even much above 1 x bodyweight, but the peak force occuring towards the left is way up at approx. 4 x bodyweight!
+
+## So what have we learned?
+
+A couple of general observations can be made in all this:
+
+- peak resultant force magnitudes increase in running style landings
+- they also tend to be more anteriorly orientated at the time of peak magnitude
+
+Since peak force, regardless of when it occurs during execution of a landing / movement, is a relevant measure of stress on the body, looking at peak resultant forces in general remains interesting and, I believe, relevant. But, mapping them out visually in the way I've done here raises some questions:
+
+- does the peak resultant force in a running style landing occur as a result of absorbing the landing, or from pushing back off the ground to accelerate and continue moving?
+- does this matter?
+  - Is it worth isolating the phases of a running landing when comparing to other landing styles?
+  - Or should we be including propulsive phases in our other landing styles, such as a precision landing into a plyometric jump?
+
+This could be something fairly unique to parkour; I struggle to think of another physical activity or sport besides dance that could involve landing from some significant height on one leg before continuing into a run.
+
+Questions abound, and bleeding edge science beckons. I plan to continue my research into the biomechanics of parkour; I'm doing a Masters by Research next year in fact. So who knows. Maybe all this poking and prodding of old data will lead to something amazing in a full investigation.
+
+What a *result* that would be.
+
+...resultant.
+
+What a *resultant* that...
+
+Hm.
+
+This could be a *peak* into something of great *magnitude*...
+
+...
+
+Nevermind.
+
+Thank you for reading. If you enjoyed this nerdy deep dive on parkour movement, you can check out the original study this data came from [here](https://jmablog.com/pkvs).
