@@ -8,6 +8,13 @@ output:
     self_contained: no
 ---
 
+```{r}
+
+# Final blog post available at https://jmablog.com/post/resultant-forces-in-parkour-vaults/
+
+```
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
 	echo = FALSE,
