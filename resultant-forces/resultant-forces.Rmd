@@ -1,7 +1,7 @@
 ---
 title: "Resultant Forces"
 author: "James Adams"
-date: "17/05/2020"
+date: "20/07/2020"
 output: 
   html_document: 
     keep_md: yes
@@ -11,6 +11,8 @@ output:
 ```{r}
 
 # Final blog post available at https://jmablog.com/post/resultant-forces-in-parkour-vaults/
+
+# Final blog test may differ from text found here
 
 ```
 
