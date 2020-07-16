@@ -12,7 +12,7 @@ output:
 
 # Final blog post available at https://jmablog.com/post/resultant-forces-in-parkour-vaults/
 
-# Final blog test may differ from text found here
+# Final blog text may differ from text found here
 
 ```
 
@@ -111,7 +111,7 @@ repMeans <- resultantForces %>%
 
 ```
 
-I had a lot of ideas for what I wanted to include in my [dissertation](https://jmablog.com/pkvs). Starting out, writing my proposal, I wanted to look at *everything* I could think of in relation to vaulting in parkour and the landing forces that result. I wanted to include [rate of force development](https://www.scienceforsport.com/rate-of-force-development-rfd-2/), projectile motion of bodies in the air, motion tracking joint angles... Every biomechanical variable you could think of, I wanted it in there. I was dependant variable mad!
+I had a lot of ideas for what I wanted to include in my [dissertation](https://jmablog.com/research/pkvs). Starting out, writing my proposal, I wanted to look at *everything* I could think of in relation to vaulting in parkour and the landing forces that result. I wanted to include [rate of force development](https://www.scienceforsport.com/rate-of-force-development-rfd-2/), projectile motion of bodies in the air, motion tracking joint angles... Every biomechanical variable you could think of, I wanted it in there.
 
 Unfortunately, the more variables you start throwing in, the more diluted your study becomes. It's hard to tell a good story about so many outcomes; the water gets muddied. The best scientific studies I've read have picked one variable and really *gone in* on what it is, what it means, and why you should care about it. There's also a *lot more* statistical work involved with more variables, and frankly, for undergrad level it was overkill. So I drilled down, and went with what I considered the basics.
 
@@ -119,41 +119,43 @@ As a side effect, I ended up with a lot of research and ideas on the cutting roo
 
 Plus I like making graphs.
 
-One discarded idea that really stuck with me was the investigation into **resultant forces** from parkour vaults. So I decided to dig into it further. I wanted to share some of these observations, but that's all they are; I haven't done any statistical testing here. But, resultant forces present a really interesting way to visualise the forces acting upon a body when landing from a movement, particular one that doesn't just involve jumping straight up and down, but involves a horizontal travelling component. 
+One discarded idea that really stuck with me was an investigation into the **resultant landing forces** that people experience when landing from parkour vaults. So I decided to dig into it further. I wanted to share some of these observations, but that's all they are. I haven't done any in-depth statistical testing here. But, resultant forces present a really interesting way to visualise the forces acting upon a body when landing from a movement, particular one that doesn't just involve jumping straight up and down, but involves a horizontal travelling component. 
 
 Let's jump in, but first...
 
-## What is a resultant force?
+## What is a landing (or ground reaction) force?
 
-Most people are at least vaguely familiar with [Newton's Third Law of Motion](https://en.wikipedia.org/wiki/Newton%27s_laws_of_motion#Newton's_third_law) - often summarised as 'for every action there is an equal and opposite reaction'. When it comes to landing, this means that the floor 'pushes' back on you exactly as hard as you push upon it. It has to; if it couldn't match your force in coming down, you'd smash straight through the floor. This force is called the **ground reaction force**, which makes sense, as it's the *force* the *ground* is *reacting* to you with. Sometimes science comes up with really hard, confusing names for things, and sometimes it's just like 'yeah, just call it exactly what it is'. I'll be using **GRF** for ground reaction force from here on.
+Most people are at least vaguely familiar with [Newton's Third Law of Motion](https://en.wikipedia.org/wiki/Newton%27s_laws_of_motion#Newton's_third_law) - often summarised as 'for every action there is an equal and opposite reaction'. When it comes to landing, this means that the floor 'pushes' back on you exactly as hard as you push upon it. It has to; if it couldn't match your force in coming down, you'd smash straight through the floor. This force is called the **ground reaction force** (GRF), which makes sense, as it's the *force* the *ground* is *reacting* to you with. Sometimes science comes up with really hard, confusing names for things, and sometimes it's just like 'yeah, just call it exactly what it is'. 
 
-Anyway, if jumping straight up and down, it looks like this:
+Anyway, if jumping straight up and down, it looks like this, with the green arrow as the force your landing is exerting, and the red arrow as the GRF:
 
 ![](vGRF.png)
 
 This is generally known as **vertical** GRF.
 
-The strength (or **magnitude**) of the forces at play depends upon a few things, such as your bodyweight, the speed you are travelling, and how much you are able to actively mitigate the impact you make. The final one is pretty much what I studied in the dissertation and one of the things people are most interested in with parkour; the ability to absorb and reduce some of these landing forces using good technique and strong leg muscles. Some people can land really softly, and some people can come down like a sack of bricks, despite weighing the same and dropping the same distance. But that's besides the point here.
+The strength (or **magnitude**) of the forces at play depends upon a few things, such as your bodyweight, the speed you are travelling, and how much you are able to actively mitigate the impact you make. The final one is pretty much what I studied in the dissertation and one of the things people are most interested in with parkour - the ability to absorb and reduce some of these landing forces using good technique and strong leg muscles. Some people can land really softly, and some people can come down like a sack of bricks, despite weighing the same and dropping the same distance.
 
-As well as jumping straight up and down, sometimes you jump forward and backward, or side to side. These movements have their own GRFs, corresponding to the direction you are moving. Again this makes sense; the ground has to stop you from continuing to move forward if you do a broad jump, otherwise you'd land and continue to slide forward forever until you met another obstacle. While hilarious, this would be impractical. Chiefly these forces are friction based, but that doesn't really matter here.
+As well as jumping straight up and down, sometimes you jump forward and backward, or side to side. These movements have their own GRFs, corresponding to the direction you are moving. Again this makes sense - the ground has to stop you from continuing to move forward if you do a broad jump, otherwise you'd land and continue to slide forward forever until you met another obstacle. While hilarious, this would be impractical.
 
-While side to side (or medial-lateral) GRF is useful for things like studying balance, I just looked at forward-backward (or anterior-posterior, or just **horizontal**) GRF alongside vertical. Here's a diagram of horiztonal GRF, in particular when it is acting as a braking force to slow you down:
+While side to side (or medial-lateral) GRF is useful for things like studying balance, I just looked at forward-backward (or anterior-posterior, or just **horizontal**) GRF alongside vertical. Here's a diagram of horizontal GRF acting as a braking force to slow you down:
 
 ![](hGRF.png)
 
-One interesting thing to note here is that horizontal GRF also has two sub-divisions. Braking GRF is when the ground is stopping you from carrying on; if you're coming to a dead stop after a movement, this is all that will affect you. But if you're running, or continuing to move forward in some way after landing, you also use propulsive GRF to push off the floor and accelerate. Suddenly, the ground isn't pushing back on you to slow you down, but pushing you forwards!
+One interesting note here is that horizontal GRF also applies to activities like walking or running, and has two sub-divisions. Braking GRF is when the ground is stopping you from carrying on; if you're coming to a dead stop after a movement, this is all that will affect you. But if you're continuing to move forward in some way after landing, you also use propulsive GRF to push off the floor and accelerate. Suddenly, the ground isn't pushing back on you to slow you down, but pushing you forwards:
 
 ![](running.png)
 
-This comes up when it comes to landing from a vault with a running landing; we'll get there a little bit later.
+The interplay of braking and propulsive forces is what allows us to walk, run, and sprint. This comes up when it comes to landing from a vault with a running landing; we'll get there a little bit later.
 
-Okay. So, we have vertical and horizontal GRF. So what's resultant force? Well, think about if you're coming in to land from a broad jump or a vault, you're not just coming straight down, or sliding along the ground perfectly horizontally. You are moving in a *combination* of up-and-down, and forward-and-backward directions. The resultant force you are exerting is the *combination* of those two forces acting upon you. For our uses, the resultant force is therefore the **combination of the GRFs acting upon you when landing**.
+## So what’s a resultant force here?
+
+So, we have vertical and horizontal as two directions of GRF commonly studied by sports scientists. But, think about when you're coming in to land from a broad jump or a vault; you're not just coming straight down, or sliding along the ground perfectly horizontally. You are moving in a *combination* of up-and-down, *and* forward-and-backward directions. The force you are exerting on the ground isn’t really split two distinct parts, even though it's often studied in this way, but is actually a single force coming in at an angle. For our uses, the resultant landing force is therefore the **combination of the vertical and horizontal GRFs acting upon you when landing**.
 
 To illustrate, if you're landing like this:
 
 ![](landing.png)
 
-Do you think the GRFs push back upon you in separate vertical and horizontal stages, like this?
+GRFs don't push back upon you in separate vertical and horizontal stages, like this:
 
 ![](notRF.png)
 
@@ -161,17 +163,19 @@ No, they match not only the *magnitude* of the combination of the forces, but al
 
 ![](rf.png)
 
-This presents a fairly intuitive way to visualise the forces acting upon you when landing in any movement that isn't just straight up-and-down. So, much like when dealing with solely vertical or horizontal GRF, we can use the resultant GRF to determine the effect that a landing will have on you!
+This presents a fairly intuitive way to visualise the forces acting upon you when landing in any movement that isn't just straight up-and-down. So, much like dealing with solely vertical or horizontal GRF, we can use the resultant GRF to determine the effect that a landing will have on you.
 
-## Why look at resultant forces?
+As an aside, you might wonder why GRFs are normally decomposed into separate vertical and horizontal components. Well, it's just generally easier to analyse, and there's usually more of a direct relation between one component and the movement being carried out. You might be more concerned with horizontal GRFs for a sport like sprinting where there isn't as much up-and-down movement and acceleration is *really* important, so you focus there and leave vertical GRFs out to present a clearer picture of your area of interest. Jumping is usually up-and-down more than horizontal, so the focus is on vertical GRF. Parkour joins sports like gymnastics and dance where a combination of vertical and horizontal motion mean resultant forces might be something worth looking at more than the individual components.
 
-Generally, the larger the magnitude of GRF you experience, the more stress is passed on to the body, and the greater your chance of an injury from that movement. It's not always cut-and-dry, there are a lot of other factors that can go into it, but basically we know that larger GRF on landing is more demanding of the body to deal with, and more *likely* to hurt you in some fashion than a smaller GRF.
+## Why look at landing forces at all?
 
-Since the exact amount of GRF you'll experience varies a lot throughout the stages of a landing, generally we look at the *peak* amount, or largest magnitude value we can identify during the landing. In investigating these forces, I found that vertical GRF plays a much more influential role in the magnitude of peak resultant GRF than horizontal does; that is, peak vertical GRF is usually much larger than the peak horizontal GRF and so peak resultant GRF occurs mostly around the same time as peak vertical.
+Generally, the larger the magnitude of GRF you experience, the more stress is passed on to the body, and the greater your chance of an injury from that movement. It's not always cut-and-dry, there are a lot of other factors that can go into it, but basically we know that larger GRF on landing is more demanding of the body to deal with, and more likely to hurt you in some fashion than a smaller GRF.
 
-With resultant forces, we can also look at the angle that the GRF is applying itself to you, and mostly here I've looked at the *angle that peak resultant GRF occurs*. 0° is flat, and 90° is straight up, so any resultant angle lower than 90° means that the peak occurred during braking, and angles beyond 90° mean peak occurred during propulsion.
+Since the exact amount of GRF you'll experience varies a lot throughout the stages of a landing, generally we look at the **peak** amount, or largest magnitude value we can identify during the landing. In investigating these forces, I found that vertical GRF plays a much more influential role in the magnitude of peak resultant GRF than horizontal does; that is, peak vertical GRF is usually much larger than the peak horizontal GRF and so peak resultant GRF occurs mostly around the same time as peak vertical.
 
-Here, I've looked at angle mostly with interested observations; I haven't gone in depth on the subject (yet), but since [shearing forces](https://en.wikipedia.org/wiki/Shear_force) are a thing, it's easy to imagine that the angle a GRF acts upon your tissues could also play a role in injury.
+With resultant forces, we can also look at the angle that the GRF is applying itself to you, and mostly here I've looked at the angle that peak resultant GRF occurs. 0° is flat, and 90° is straight up, so any resultant angle lower than 90° means that the peak occurred during braking, and angles beyond 90° mean peak occurred during propulsion.
+
+Here, I've looked at angle with just interested observations. I haven't gone in depth on the subject (yet), but since [shearing forces](https://en.wikipedia.org/wiki/Shear_force) are a thing, it's easy to imagine that the angle a GRF acts upon your tissues could also play a role in injury.
 
 ## Calculating and plotting resultant forces
 
@@ -192,7 +196,7 @@ Et voila! We can now view our resultant force data in a variety of ways.
 
 I wanted to get a broad overview of the resultant forces in parkour vaults first. There were 10 participants in the study, and each performed 3 repetitions of every movement with each landing style.
 
-**Note:** if you haven't read the [original study](https://jmablog.com/pkvs/) for this data, the movements performed were a drop landing, a step vault, a kong vault, and a dash vault. The landing styles were a precision landing, with two feet coming to a stop, and a running landing, with one foot and continuining into a run. Force readings were normalised to bodyweight (BW), to allow comparisons between people that weigh different amounts. Generally, 1 bodyweight (1 BW) is the GRF you experience standing upright and still on the ground, as a result of gravity. The GRF figures for precisions landings were also halved to give the GRFs passing through a single limb, to match with the running landing.
+**Note:** if you haven't read the [original study](https://jmablog.com/research/pkvs/) for this data, the movements performed were a drop landing, a step vault, a kong vault, and a dash vault. The landing styles were a precision landing, with two feet coming to a stop, and a running landing, with one foot and continuining into a run. Force readings were normalised to bodyweight (BW), to allow comparisons between people that weigh different amounts. Generally, 1 BW is the GRF you experience standing upright and still on the ground, as a result of gravity. The GRF figures for precisions landings were also halved to give the GRFs passing through a single limb, to match with the running landing.
 
 Taking the mean of all 3 reps, and then the mean for all 10 participants, for all movement/landing style combinations gave the following:
 
@@ -227,9 +231,9 @@ repMeans %>%
 
 You can view this plot (and all that follow) as if the participant was coming in to land from the top right of each square; the arrow indicates the direction and magnitude of the resultant GRF pushing back upon the participant as they hit the floor. For the Horizontal / *x* component of the plot, positive numbers indicate braking, while negative are propulsive.
 
-You can see a couple things straight away from this plot. Resultant GRF increases with a running landing compared to a precision landing. This agrees with my findings in the original study about vertical GRF, and given the dominance of vertical GRF in calculating the peak resultant force, makes sense.
+You can see a couple things straight away from this plot. Resultant GRF magnitudes increase with a running landing compared to a precision landing. This agrees with my findings in the original study about vertical GRF, and given the dominance of vertical GRF in calculating the peak resultant force, makes sense.
 
-Resultant angles were all below 90° for precision landings, and all above 90° for running landings. This means peak resultant GRF occurred during braking for precisions, and during propulsion for running landings. This also makes sense; you're coming to a stop with a precision but continuing forwards with a run. Still, it's good to note that the greatest GRF occurred because the participant was accelerating, and actively pushing on the ground, rather than during the initial period of landing. More on this later.
+Resultant angles were all below 90° for precision landings, and all above 90° for running landings. This means peak resultant GRF occurred during braking for precisions, and during propulsion for running landings. This also makes sense, as you're coming to a stop with a precision but continuing forwards with a run. Still, it's good to note that the greatest GRF occurred because the participant was accelerating, and actively pushing on the ground, rather than during the initial period of landing. More on this later.
 
 Alright, what if we try looking at individual participants? Do the resultant forces depend a lot on the person, or are they consistent regardless of who performs them?
 
@@ -507,29 +511,11 @@ A couple of general observations can be made in all this:
 - peak resultant force magnitudes increase in running style landings
 - they also tend to be more anteriorly orientated at the time of peak magnitude
 
-Since peak force, regardless of when it occurs during execution of a landing / movement, is a relevant measure of stress on the body, looking at peak resultant forces in general remains interesting and, I believe, relevant. But, mapping them out visually in the way I've done here raises some questions:
+Since peak force, regardless of when it occurs during execution of a landing / movement, is a key measure of stress on the body, looking at peak resultant forces in general remains interesting and, I believe, relevant. But, mapping them out visually in the way I've done here raises some questions:
 
 - does the peak resultant force in a running style landing occur as a result of absorbing the landing, or from pushing back off the ground to accelerate and continue moving?
-- does this matter?
-  - Is it worth isolating the phases of a running landing when comparing to other landing styles?
-  - Or should we be including propulsive phases in our other landing styles, such as a precision landing into a plyometric jump?
+- does this matter? Is it worth isolating the phases of a running landing when comparing to other landing styles? Or should we be including propulsive phases in our other landing styles, such as a precision landing into a plyometric jump?
 
-This could be something fairly unique to parkour; I struggle to think of another physical activity or sport besides dance that could involve landing from some significant height on one leg before continuing into a run.
+This could be something fairly unique to parkour; I struggle to think of another physical activity or sport besides dance that could involve landing from some significant height on one leg before continuing into a run. I plan to continue my research into the biomechanics of parkour; I'm doing a Masters by Research next year in fact. So who knows. Maybe all this poking and prodding of old data will lead to something amazing in a full investigation.
 
-Questions abound, and bleeding edge science beckons. I plan to continue my research into the biomechanics of parkour; I'm doing a Masters by Research next year in fact. So who knows. Maybe all this poking and prodding of old data will lead to something amazing in a full investigation.
-
-What a *result* that would be.
-
-...resultant.
-
-What a *resultant* that...
-
-Hm.
-
-This could be a *peak* into something of great *magnitude*...
-
-...
-
-Nevermind.
-
-Thank you for reading. If you enjoyed this nerdy deep dive on parkour movement, you can check out the original study this data came from [here](https://jmablog.com/pkvs).
+Thanks for reading. If you enjoy this kind of nerdy deep dive on parkour movement, you can check out the original study this data came from [here](https://jmablog.com/research/pkvs) and even grab the data for yourself if you would like to perform your own analysis. You can also view the source code for all the plots in this post [here](https://github.com/jmablog/jmablog/blob/master/resultant-forces/resultant-forces.Rmd).

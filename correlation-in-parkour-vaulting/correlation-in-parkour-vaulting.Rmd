@@ -11,7 +11,7 @@ output:
 
 # Final blog post available at https://jmablog.com/post/correlation-in-parkour-vaulting/
 
-# Final blog test may differ from text found here
+# Final blog text may differ from text found here
 
 ```
 
@@ -48,7 +48,7 @@ load(here("pkvs_extra.Rdata"))
 
 ```
 
-In [my last blog post](https://jmablog.com/post/resultant-forces/), I explored the data that resulted from my [undergraduate dissertation](https://jmablog.com/pkvs/) a little bit more. As I say in that post, I know it's a little frowned-upon from a purely scientific point of view to double-dip on your data, but I can't resist going back to that well.
+In [my last blog post](https://jmablog.com/post/resultant-forces/), I explored the data that resulted from my [undergraduate dissertation](https://jmablog.com/research/pkvs/) a little bit more. As I say in that post, I know it's a little frowned-upon from a purely scientific point of view to double-dip on your data, but I can't resist going back to that well.
 
 So I got curious; my dissertation focused on movement choice and landing style as factors affecting ground reaction forces (GRFs), but I'd collected a bunch of characteristic data like age, height, etc. about the participants that went mostly unused. Could any of these also play a role in how well someone mitigates their GRFs?
 
@@ -304,4 +304,4 @@ Sometimes, lefties did better, and sometimes righties did. But, there was never 
 
 Of course, it would still be interesting to see how performance differs *between* feet for traceurs... But that's another study for another time.
 
-Thanks for reading. If you enjoy this kind of nerdy deep dive on parkour movement, you can check out the original study this data came from [here](https://jmablog.com/pkvs) and even grab the data for yourself if you would like to perform your own analysis. You can also view the source code for all the plots in this post [here]().
+Thanks for reading. If you enjoy this kind of nerdy deep dive on parkour movement, you can check out the original study this data came from [here](https://jmablog.com/research/pkvs) and even grab the data for yourself if you would like to perform your own analysis. You can also view the source code for all the plots in this post [here](https://github.com/jmablog/jmablog/blob/master/correlation-in-parkour-vaulting/correlation-in-parkour-vaulting.Rmd).
