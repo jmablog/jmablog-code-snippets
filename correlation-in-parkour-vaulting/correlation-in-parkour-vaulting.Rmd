@@ -304,4 +304,4 @@ Sometimes, lefties did better, and sometimes righties did. But, there was never 
 
 Of course, it would still be interesting to see how performance differs *between* feet for traceurs... But that's another study for another time.
 
-Thanks for reading. If you enjoy this kind of nerdy deep dive on parkour movement, you can check out the original study this data came from [here](https://jmablog.com/research/pkvs) and even grab the data for yourself if you would like to perform your own analysis. You can also view the source code for all the plots in this post [here](https://github.com/jmablog/jmablog/blob/master/correlation-in-parkour-vaulting/correlation-in-parkour-vaulting.Rmd).
+Thanks for reading. If you enjoy this kind of nerdy deep dive on parkour movement, you can check out the original study this data came from [here](https://jmablog.com/research/pkvs) and even grab the data for yourself if you would like to perform your own analysis. You can also view the source code for all the plots in this post [here](https://github.com/jmablog/jmablog-code-snippets/blob/master/correlation-in-parkour-vaulting/correlation-in-parkour-vaulting.Rmd).
