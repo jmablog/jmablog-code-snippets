@@ -1,0 +1,88 @@
+---
+title: 'Tidy Tuesday: Astronauts'
+author: "James Adams"
+date: "13/07/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tidytuesdayR)
+library(here)
+library(tidytext)
+library(ggthemr)
+library(cowplot)
+library(ggtext)
+library(glue)
+
+ggthemr("flat dark", type = "outer")
+
+```
+
+```{r}
+
+data <- tt_load(2020, week=29)$astronauts
+
+```
+
+```{r}
+
+avgs <- data %>%
+  group_by(name) %>%
+  summarise(across(hours_mission, mean, .names = "mean_{col}"),
+            longest_mission = round(max(hours_mission)/24, 2),
+            no_mission = unique(total_number_of_missions),
+            total_hrs = unique(total_hrs_sum)) %>%
+  mutate(avg_days_per_mission = round(mean_hours_mission / 24, 2),
+         total_days = round(total_hrs / 24, 2)) %>%
+  arrange(desc(avg_days_per_mission)) %>%
+  select(-mean_hours_mission, -total_hrs) %>%
+  filter(no_mission > 1) %>%
+  group_by(no_mission) %>%
+  slice_max(longest_mission, n=10) %>%
+  ungroup()
+
+avgs
+
+```
+
+```{r}
+
+plot <- avgs %>%
+  mutate(no_mission = glue::glue("{no_mission} Missions"),
+         name = str_replace_all(name, "(\\w+), (.)[a-zA-Z]+($|( .).($|(, Jr)))", "\\1, \\2.\\3"),
+         name = str_replace(name, "Yuri Vladimirovich Usachyov", "Yuri, V. U.")) %>%
+  ggplot(aes(x = reorder_within(name, longest_mission, no_mission))) +
+  geom_segment(aes(xend = reorder_within(name, longest_mission, no_mission),
+                   y = avg_days_per_mission,
+                   yend = longest_mission), color = "white") +
+  geom_point(aes(y = longest_mission), color = swatch()[4], size = 2) +
+  geom_point(aes(y = avg_days_per_mission), color = swatch()[3], size = 2) +
+  scale_x_reordered() +
+  coord_flip() +
+  facet_wrap(vars(no_mission), ncol = 2, scales = "free_y") +
+  labs(x = "",
+       y = "Mission Length (Days)",
+       title = glue("How much longer than their <span style='color:{swatch()[3]};'>average</span> was their <span style='color:{swatch()[4]};'>longest</span> mission?"),
+       subtitle = "For the 10 longest missions by astronauts that flew more than one mission") + 
+  theme(plot.title.position = "plot",
+        plot.title = element_markdown(),
+        strip.text = element_text(face = "bold"),
+        axis.title.x = element_text(face = "bold"))
+
+plot 
+```
+
+```{r}
+
+ggdraw(plot) +
+  draw_image(here("astronauts", "rocket.png"), scale = 0.06, x = .285, y = .46)
+
+```
+
+```{r}
+ggsave(here("astronauts", "plot.png"), dpi = "retina", width = 8, height = 7)
+```
+

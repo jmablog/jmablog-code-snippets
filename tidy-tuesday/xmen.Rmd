@@ -1,0 +1,87 @@
+---
+title: 'Tidy Tuesday: X-Men'
+author: "James Adams"
+date: "13/07/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(janitor)
+library(tidytuesdayR)
+library(ggthemr)
+library(cowplot)
+library(here)
+
+# set theme with ggthemr
+ggthemr('fresh')
+
+```
+
+```{r}
+
+# import tidy tuesday data
+data <- tt_load(2020, week=27)
+
+characters <- data$characters
+
+```
+
+```{r}
+
+# summarise total instances the state occurred on each character across run
+char_states_totals <- characters %>%
+  select(-issue) %>%
+  group_by(character) %>%
+  summarise(across(is.numeric, sum)) %>%
+  ungroup() %>%
+  select(1:4, 6, 8) %>%
+  janitor::adorn_totals("col", name = "total") %>%
+  untabyl() %>%
+  slice_max(total, n = 10) %>%
+  select(character, total, everything()) %>%
+  pivot_longer(3:7, names_to="state", values_to = "count") %>%
+  separate(character, sep = " = ", into = c("codename", "name")) %>%
+  mutate(codename = case_when(codename == "Ariel/Sprite/Shadowcat" ~ "Shadowcat",
+                              codename == "Marvel Girl/Phoenix" ~ "Jean Grey",
+                              TRUE ~ codename))
+
+```
+```{r}
+
+
+
+```
+
+```{r}
+
+# create stacked column plot
+plot <- char_states_totals %>%
+  mutate(state = str_replace_all(state, "_", " "),
+         state = str_replace_all(state, "subject", "subjected"),
+         state = str_to_sentence(state)) %>%
+  mutate(state = fct_reorder(state, count),
+         codename = fct_reorder(codename, total)) %>%
+  ggplot(aes(codename, count, fill = state)) +
+  geom_col() + 
+  coord_flip() +
+  labs(title = "Which X-Men character had it worst?",
+       subtitle = "During Chris Claremont's 1975-1991 run on Uncanny X-Men",
+       x = "",
+       y = "No. of Occurrences",
+       fill = "")
+
+# add storm image to plot
+ggdraw(plot) +
+  draw_image(here("xmen", "storm.jpg"), scale = .3, x = .37, y = .3) 
+
+```
+
+```{r}
+
+ggsave(here("xmen", "xmen-plot.png"), width = 7, height = 4, dpi = "retina")
+
+```
+
