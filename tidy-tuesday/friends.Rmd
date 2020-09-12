@@ -43,7 +43,8 @@ emotion_scores <- data %>%
 
 emotion_scores %>%
   mutate(speaker = str_extract(speaker, "^[a-zA-Z]+"),
-         season = glue::glue("Season {season}")) %>%
+         season = glue::glue("Season {season}"),
+         headshot = glue::glue("<img src='{speaker}.png' width = '35' />")) %>%
   ggplot(aes(episode, episode_score, color = speaker)) +
   geom_point(alpha = .5, show.legend = F) +
   geom_smooth(se = F, show.legend = F) +
@@ -52,8 +53,9 @@ emotion_scores %>%
   labs(x = "Episode", y = "Emotion Score",
        title = "How joyful were the <img src = 'friends-logo-tr.png' width = '90' /> main characters?",
        subtitle = "'Joyful' utterance = Score +1, 'Sad' utterance = Score -1, summed per episode") +
-  facet_grid(speaker~season) +
-  theme(strip.text.y = element_text(angle = 0, hjust = 0),
+  facet_grid(headshot~season) +
+  theme(#strip.text.y = element_text(angle = 0, hjust = 0),
+        strip.text.y = element_markdown(angle = 0, hjust = 0),
         panel.grid = element_blank(),
         axis.line.x = element_blank(),
         axis.ticks.x = element_blank(),
